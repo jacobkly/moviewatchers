@@ -1,43 +1,65 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 func main() {
-	// get usb directory
 	var dirPath string
-	fmt.Print("Enter dir path for USB flash drive (ex: \"F:\"): ")
-	_, err := fmt.Scan(&dirPath)
-
-	// read and list all files on usb
-	files, err := os.ReadDir(dirPath)
+	fmt.Print("Enter dir path for USB flash drive (ex: \"F:\\\"): ")
+	_, err := fmt.Scanln(&dirPath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(dirPath, " contained these files below:")
-	for _, file := range files {
-		fmt.Println(file.Name())
-	}
 
+	dirPath = filepath.Clean(dirPath) // normalize path for cross-platform compatibility
+	fmt.Println()
+	printFiles(dirPath)
+	fmt.Println()
+
+	reader := bufio.NewReader(os.Stdin) // bufio for reading input with spaces
 	for {
-		// open one of the files in VLC
-		var videoFile string
-		fmt.Println("Choose the .mp4 file to open in VLC (or \"q\" to quit): ")
-		_, err = fmt.Scan(&videoFile)
+		fmt.Println("Choose the file path to open in VLC (or \"q\" to quit): ")
+		filePath, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error reading input:", err)
+			continue
+		}
 
-		if videoFile == "q" {
+		filePath = filepath.Clean(filePath[:len(filePath)-1]) // trim null char
+		if filePath == "q" {
 			break
 		}
 
-		cmd := exec.Command("C:\\Program Files\\VideoLAN\\VLC\\vlc.exe", dirPath+"\\"+videoFile)
-		if err := cmd.Run(); err != nil { // start command
-			fmt.Println(err)
+		fmt.Println("Running file path:", filePath)
+		cmd := exec.Command("C:\\Program Files\\VideoLAN\\VLC\\vlc.exe", filePath)
+		if err := cmd.Run(); err != nil {
+			fmt.Println("Error running VLC:", err)
 		}
 	}
 
-	fmt.Println("Good day sir...")
+	fmt.Println("Good day sir")
+}
+
+// Recursively print files
+func printFiles(dirPath string) {
+	files, err := os.ReadDir(dirPath)
+	if err != nil {
+		log.Printf("Error reading directory '%s': %v\n", dirPath, err)
+		return
+	}
+
+	for _, file := range files {
+		temp := filepath.Join(dirPath, file.Name())
+		fmt.Println(temp)
+
+		if file.IsDir() {
+			printFiles(temp)
+		}
+	}
 }
