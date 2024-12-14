@@ -1,29 +1,23 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"net/http"
+
+	"github.com/jacobkly/moviewatchers/internal/routes"
+	"github.com/jacobkly/moviewatchers/internal/services"
 )
 
-type MovieLibrary struct {
-	FilesJSON map[string]interface{}
-}
-
-var movieLibrary = MovieLibrary{
-	FilesJSON: make(map[string]interface{}),
-}
-
 func main() {
-	movieLibrary.FilesJSON["Anime"] = map[string]interface{}{
-		"Kids on the Slope": map[string]interface{}{
-			"Episode 1": "ep1.mp4",
-			"Episode 2": "ep2.mp4",
-		},
-	}
-	movieLibrary.FilesJSON["Movies"] = map[string]interface{}{
-		"The Pianists (2002)": "thepianist.mp4",
-	}
+	// populate json first for instant feedback later
+	services.PopulateJSON("F:\\")
 
-	jsonMovieLibrary, _ := json.Marshal(movieLibrary)
-	fmt.Printf("json movie library: %s\n", jsonMovieLibrary)
+	router := routes.NewRouter()
+
+	addr := fmt.Sprintf(":%d", 8080)
+	fmt.Printf("Server listening on http://localhost%s\n", addr)
+	err := http.ListenAndServe(addr, router)
+	if err != nil {
+		panic(err)
+	}
 }
