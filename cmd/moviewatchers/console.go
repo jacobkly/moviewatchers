@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 )
 
-func main() {
+func console() {
 	var dirPath string
 	fmt.Print("Enter dir path for USB flash drive (ex: \"F:\\\"): ")
 	_, err := fmt.Scanln(&dirPath)
