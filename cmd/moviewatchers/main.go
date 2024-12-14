@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/jacobkly/moviewatchers/internal/routes"
@@ -9,14 +10,17 @@ import (
 )
 
 func main() {
-	// populate json first for instant feedback later
-	services.PopulateJSON("F:\\")
+	// populate json object first for instant feedback later
+	err := services.PopulateJSON("F:\\")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	router := routes.NewRouter()
 
-	addr := fmt.Sprintf(":%d", 8080)
-	fmt.Printf("Server listening on http://localhost%s\n", addr)
-	err := http.ListenAndServe(addr, router)
+	addr := fmt.Sprintf("localhost:%d", 8080)
+	fmt.Printf("Server listening on http://%s\n", addr)
+	err = http.ListenAndServe(addr, router)
 	if err != nil {
 		panic(err)
 	}

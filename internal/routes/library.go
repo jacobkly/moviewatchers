@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/jacobkly/moviewatchers/internal/services"
@@ -23,7 +24,7 @@ func libraryDisplayHandler(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound) // 404
 			fmt.Fprintln(w, "No JSON library found")
 		} else {
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusInternalServerError) // 500
 			fmt.Fprintln(w, "Error fetching JSON library: ", err)
 		}
 		return
@@ -38,5 +39,15 @@ func libraryDisplayHandler(w http.ResponseWriter, r *http.Request) {
 
 // might move to "media_player" route
 func playVideoHandler(w http.ResponseWriter, r *http.Request) {
-
+	rBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintln(w, "Error reading body: ", err)
+		return
+	}
+	err = services.PlayVideo(rBody)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintln(w, "Error playing video: ", err)
+	}
 }

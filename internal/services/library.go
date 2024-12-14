@@ -3,48 +3,87 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"syscall"
 )
 
-// idea from early on in main:
-// adding JSON object to req body which frontend can use to populate
-// categorize with "Anime", "Movies", "Shows"
+var movieLibrary = make(map[string]interface{})
 
-// example: adding to library (easy map operations)
-//	movieLibrary.FilesJSON["Anime"] = map[string]interface{}{
-//		"Kids on the Slope": map[string]interface{}{
-//			"Episode 1": "ep1.mp4",
-//			"Episode 2": "ep2.mp4",
-//		},
-//	}
-//	movieLibrary.FilesJSON["Movies"] = map[string]interface{}{
-//		"The Pianists (2002)": "thepianist.mp4",
-//	}
+func PopulateJSON(filePath string) error {
+	files, err := os.ReadDir(filePath)
+	if err != nil {
+		return fmt.Errorf("issue reading directory %s: %v", filePath, err)
+	}
 
-type MovieLibrary struct {
-	Library map[string]interface{}
+	for _, file := range files {
+		newFullPath := filepath.Join(filePath, file.Name())
+		hidden, _ := isHidden(newFullPath)
+		if hidden {
+			continue
+		}
+
+		if file.IsDir() {
+			movieLibrary[file.Name()], _ = populateMap(newFullPath)
+		} else {
+			movieLibrary[file.Name()] = newFullPath
+		}
+	}
+	return nil
 }
 
-var lib = MovieLibrary{
-	Library: make(map[string]interface{}),
+func populateMap(filePath string) (map[string]interface{}, error) {
+	mapResult := make(map[string]interface{})
+
+	files, err := os.ReadDir(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("issue reading directory %s: %v", filePath, err)
+	}
+
+	for _, file := range files {
+		newFullPath := filepath.Join(filePath, file.Name())
+		hidden, _ := isHidden(newFullPath)
+		if hidden {
+			continue
+		}
+		mapResult[file.Name()] = newFullPath
+	}
+	return mapResult, nil
 }
 
-func PopulateJSON(storagePath string) {
-	lib.Library["Anime"] = "Kids on the Slope" // test
+// only windows compatible
+func isHidden(filePath string) (bool, error) {
+	pointer, err := syscall.UTF16PtrFromString(filePath)
+	if err != nil {
+		return false, err
+	}
+	attributes, err := syscall.GetFileAttributes(pointer)
+	if err != nil {
+		return false, err
+	}
+	return (attributes&syscall.FILE_ATTRIBUTE_HIDDEN != 0) ||
+		(attributes&syscall.FILE_ATTRIBUTE_SYSTEM != 0), nil
 }
 
 func JsonMovieLibrary() ([]byte, error) {
-	if len(lib.Library) == 0 {
-		return nil, fmt.Errorf("Empty library")
+	if len(movieLibrary) == 0 {
+		return nil, fmt.Errorf("empty library")
 	}
 
-	jsonLib, err := json.Marshal(lib.Library)
+	jsonLibrary, err := json.Marshal(movieLibrary)
 	if err != nil {
 		return nil, err
 	}
-	return jsonLib, nil
+	return jsonLibrary, nil
 }
 
-// might move to "media_player" services
-func playVideo() {
+func PlayVideo(filePath []byte) error {
+	filePathString := string(filePath)
 
+	cmd := exec.Command("C:\\Program Files\\VideoLAN\\VLC\\vlc.exe", filePathString)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("error playing video: %v", err)
+	}
+	return nil
 }
