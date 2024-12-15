@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/jacobkly/moviewatchers/internal/services"
+	"github.com/jacobkly/moviewatchers/server/internal/services"
 )
 
 // NewRouter creates and returns a new HTTP router with two routes:

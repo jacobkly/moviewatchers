@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/jacobkly/moviewatchers/internal/routes"
-	"github.com/jacobkly/moviewatchers/internal/services"
+	"github.com/jacobkly/moviewatchers/server/internal/routes"
+	"github.com/jacobkly/moviewatchers/server/internal/services"
 )
 
 // main is the entry point for the MovieWatchers application, fully compatible with Windows.
@@ -21,7 +21,7 @@ func main() {
 
 	router := routes.NewRouter()
 	addr := fmt.Sprintf("localhost:%d", 8080)
-	fmt.Printf("Server listening on http://%s\n", addr)
+	fmt.Printf("Server listening on http://%s\n", addr) // http while in development
 	err = http.ListenAndServe(addr, router)
 	if err != nil {
 		panic(err)
