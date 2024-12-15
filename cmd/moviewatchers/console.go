@@ -1,3 +1,4 @@
+// Package main including initial testing of moviewatchers project concept.
 package main
 
 import (
@@ -9,6 +10,10 @@ import (
 	"path/filepath"
 )
 
+// console prompts the user to input a directory path for a USB flash drive, then displays the
+// files in that directory. The user is then prompted to choose a file path to open in VLC. The
+// function will continue to allow the user to open files until the user enters "q" to quit.
+// If an error occurs, it will log the error and continue the process.
 func console() {
 	var dirPath string
 	fmt.Print("Enter dir path for USB flash drive (ex: \"F:\\\"): ")
@@ -46,7 +51,9 @@ func console() {
 	fmt.Println("Good day sir")
 }
 
-// Recursively print files
+// printFiles recursively prints the paths of all files in a directory, including files in
+// subdirectories. It handles errors that occur during the reading of directories and logs them.
+// The function will traverse the directory structure and print the path of each file.
 func printFiles(dirPath string) {
 	files, err := os.ReadDir(dirPath)
 	if err != nil {

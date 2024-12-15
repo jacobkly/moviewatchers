@@ -1,3 +1,4 @@
+// Package main initializes and starts an HTTP server for the moviewatchers application.
 package main
 
 import (
@@ -9,15 +10,16 @@ import (
 	"github.com/jacobkly/moviewatchers/internal/services"
 )
 
+// main is the entry point for the MovieWatchers application, fully compatible with Windows.
+// It populates data used by the client, sets up the HTTP router, and starts the server to listen
+// on localhost at port 8080. Note that it may handle hidden files differently on Mac/Linux.
 func main() {
-	// populate json object first for instant feedback later
 	err := services.PopulateJSON("F:\\")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Issue when populating JSON data: ", err)
 	}
 
 	router := routes.NewRouter()
-
 	addr := fmt.Sprintf("localhost:%d", 8080)
 	fmt.Printf("Server listening on http://%s\n", addr)
 	err = http.ListenAndServe(addr, router)

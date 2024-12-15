@@ -1,3 +1,4 @@
+// Package routes provides the router and routes for the moviewatcher application.
 package routes
 
 import (
@@ -8,15 +9,20 @@ import (
 	"github.com/jacobkly/moviewatchers/internal/services"
 )
 
+// NewRouter creates and returns a new HTTP router with two routes:
+// - "/" to display the movie library in JSON format
+// - "/play" to play a video
 func NewRouter() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", libraryDisplayHandler)
 	mux.HandleFunc("/play", playVideoHandler)
-
 	return mux
 }
 
+// libraryDisplayHandler handles the "/" route, which returns the user's movie library in JSON format.
+// If the library is empty, it returns a 404 status code with an appropriate message.
+// If there is an error fetching the library, it returns a 500 status code and the error message.
 func libraryDisplayHandler(w http.ResponseWriter, r *http.Request) {
 	jsonLibrary, err := services.JsonMovieLibrary()
 	if err != nil {
@@ -37,7 +43,10 @@ func libraryDisplayHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// might move to "media_player" route
+// playVideoHandler handles the "/play" route, which attempts to play a video file specified in the
+// request body. It reads the video file path from the request body and attempts to play it using
+// the PlayVideo service. If an error occurs while reading the body or playing the video, it
+// returns an appropriate status code (such as 400, 404, or 500) along with an error message.
 func playVideoHandler(w http.ResponseWriter, r *http.Request) {
 	rBody, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -47,7 +56,7 @@ func playVideoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err = services.PlayVideo(rBody)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(w, "Error playing video: ", err)
 	}
 }

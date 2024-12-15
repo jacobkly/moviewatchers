@@ -1,3 +1,5 @@
+// Package services provides functions for managing a movie library, including populating the
+// library, checking if files are hidden, converting the library to JSON, and playing videos.
 package services
 
 import (
@@ -9,8 +11,11 @@ import (
 	"syscall"
 )
 
+// movieLibrary holds the movie library as a map of file names to their paths.
 var movieLibrary = make(map[string]interface{})
 
+// PopulateJSON populates the movieLibrary map by recursively reading a directory and its contents.
+// It excludes hidden files and directories and stores file paths in the movieLibrary map.
 func PopulateJSON(filePath string) error {
 	files, err := os.ReadDir(filePath)
 	if err != nil {
@@ -33,6 +38,8 @@ func PopulateJSON(filePath string) error {
 	return nil
 }
 
+// populateMap is a helper function that populates a map with the file paths from a given directory.
+// It excludes hidden files and directories. Note that it is fully compatible with Windows.
 func populateMap(filePath string) (map[string]interface{}, error) {
 	mapResult := make(map[string]interface{})
 
@@ -52,7 +59,8 @@ func populateMap(filePath string) (map[string]interface{}, error) {
 	return mapResult, nil
 }
 
-// only windows compatible
+// isHidden checks if a given file or directory is hidden on the Windows filesystem.
+// It returns true if the file is hidden or a system file, and false otherwise.
 func isHidden(filePath string) (bool, error) {
 	pointer, err := syscall.UTF16PtrFromString(filePath)
 	if err != nil {
@@ -66,6 +74,8 @@ func isHidden(filePath string) (bool, error) {
 		(attributes&syscall.FILE_ATTRIBUTE_SYSTEM != 0), nil
 }
 
+// JsonMovieLibrary returns the movieLibrary map as a JSON-encoded byte slice.
+// It returns an error if the library is empty or if marshalling fails.
 func JsonMovieLibrary() ([]byte, error) {
 	if len(movieLibrary) == 0 {
 		return nil, fmt.Errorf("empty library")
@@ -78,6 +88,8 @@ func JsonMovieLibrary() ([]byte, error) {
 	return jsonLibrary, nil
 }
 
+// PlayVideo attempts to play a video using VLC from the provided file path.
+// It returns an error if there is an issue running the VLC command.
 func PlayVideo(filePath []byte) error {
 	filePathString := string(filePath)
 
