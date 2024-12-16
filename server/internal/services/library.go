@@ -1,4 +1,4 @@
-// Package services provides functions for managing a movie library, including populating the
+// Package services provides functions for managing a video library, including populating the
 // library, checking if files are hidden, converting the library to JSON, and playing videos.
 package services
 
@@ -11,11 +11,11 @@ import (
 	"syscall"
 )
 
-// movieLibrary holds the movie library as a map of file names to their paths.
-var movieLibrary = make(map[string]interface{})
+// videoLibrary holds the video library as a map of file names to their paths.
+var videoLibrary = make(map[string]interface{})
 
-// PopulateJSON populates the movieLibrary map by recursively reading a directory and its contents.
-// It excludes hidden files and directories and stores file paths in the movieLibrary map.
+// PopulateJSON populates the videoLibrary map by recursively reading a directory and its contents.
+// It excludes hidden files and directories and stores file paths in the videoLibrary map.
 func PopulateJSON(filePath string) error {
 	files, err := os.ReadDir(filePath)
 	if err != nil {
@@ -30,9 +30,9 @@ func PopulateJSON(filePath string) error {
 		}
 
 		if file.IsDir() {
-			movieLibrary[file.Name()], _ = populateMap(newFullPath)
+			videoLibrary[file.Name()], _ = populateMap(newFullPath)
 		} else {
-			movieLibrary[file.Name()] = newFullPath
+			videoLibrary[file.Name()] = newFullPath
 		}
 	}
 	return nil
@@ -74,14 +74,14 @@ func isHidden(filePath string) (bool, error) {
 		(attributes&syscall.FILE_ATTRIBUTE_SYSTEM != 0), nil
 }
 
-// JsonMovieLibrary returns the movieLibrary map as a JSON-encoded byte slice.
+// JsonVideoLibrary returns the videoLibrary map as a JSON-encoded byte slice.
 // It returns an error if the library is empty or if marshalling fails.
-func JsonMovieLibrary() ([]byte, error) {
-	if len(movieLibrary) == 0 {
+func JsonVideoLibrary() ([]byte, error) {
+	if len(videoLibrary) == 0 {
 		return nil, fmt.Errorf("empty library")
 	}
 
-	jsonLibrary, err := json.Marshal(movieLibrary)
+	jsonLibrary, err := json.Marshal(videoLibrary)
 	if err != nil {
 		return nil, err
 	}

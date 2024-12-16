@@ -24,7 +24,7 @@ func NewRouter() http.Handler {
 // If the library is empty, it returns a 404 status code with an appropriate message.
 // If there is an error fetching the library, it returns a 500 status code and the error message.
 func libraryDisplayHandler(w http.ResponseWriter, r *http.Request) {
-	jsonLibrary, err := services.JsonMovieLibrary()
+	jsonLibrary, err := services.JsonVideoLibrary()
 	if err != nil {
 		if err.Error() == "Empty library" {
 			w.WriteHeader(http.StatusNotFound) // 404

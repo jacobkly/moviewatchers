@@ -1,0 +1,62 @@
+@import url("https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Metrophobic&display=swap");
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Metrophobic', sans-serif;
+}
+
+#app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+footer {
+    background-color: #2f3136;
+    color: #c3c3c3;
+    text-align: center;
+    padding: 1rem;
+    font-size: 1.2rem;
+    font-family: 'Metrophobic', sans-serif;
+    border-top: 2px solid #444;
+}
+
+/* Page-Specific Styles */
+#home, #library, #about {
+    text-align: center;
+    padding: 50px;
+    background-color: #2f3136;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+h1 {
+    color: #ffffff;
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+p {
+    color: #555;
+    font-size: 1.25rem;
+}
