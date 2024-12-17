@@ -1,36 +1,18 @@
 import React from 'react';
+import {useNavigate, NavigateFunction} from 'react-router-dom';
 import '../../assets/styles/app.css';
-import axios from "axios";
 
 interface VideoCardProps {
+    id: string;
     title: string;
     imagePath: string;
-    videoPath: string;
 }
 
-const handleApiError = (error: any): void => {
-    if (axios.isAxiosError(error)) {
-        if (error.response) {
-            console.error('Failed to play video:', error.response.data);
-        } else if (error.request) {
-            console.error('No response received:', error.request);
-        } else {
-            console.error('Error in request setup:', error.message);
-        }
-    } else {
-        console.error('Unexpected error:', error);
-    }
-};
+const VideoCard: React.FC<VideoCardProps> = ({id, title, imagePath}: VideoCardProps) => {
+    const navigate: NavigateFunction = useNavigate();
 
-const VideoCard: React.FC<VideoCardProps> = ({title, imagePath, videoPath}) => {
     const handleClick = async () => {
-        try {
-            console.log(videoPath)
-            await axios.post('http://localhost:8080/play', videoPath,
-                {headers: {'Content-Type': 'text/plain'}});
-        } catch (error: any) {
-            handleApiError(error);
-        }
+        navigate(`/video/${id}`);
     };
 
     return (
