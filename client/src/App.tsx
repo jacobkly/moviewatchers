@@ -6,7 +6,7 @@ import Home from './pages/Home/Home';
 import Library from './pages/Library/Library';
 import About from './pages/About/About';
 import VideoPage from './pages/VideoPage/VideoPage';
-import './assests/styles/app.css'
+import './assets/styles/app.css'
 
 function App() {
     return (

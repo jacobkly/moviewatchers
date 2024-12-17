@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"syscall"
 )
 
@@ -29,10 +30,11 @@ func PopulateJSON(filePath string) error {
 			continue
 		}
 
+		fileName := removeFileExtension(file.Name())
 		if file.IsDir() {
-			videoLibrary[file.Name()], _ = populateMap(newFullPath)
+			videoLibrary[fileName], _ = populateMap(newFullPath)
 		} else {
-			videoLibrary[file.Name()] = newFullPath
+			videoLibrary[fileName] = newFullPath
 		}
 	}
 	return nil
@@ -54,7 +56,7 @@ func populateMap(filePath string) (map[string]interface{}, error) {
 		if hidden {
 			continue
 		}
-		mapResult[file.Name()] = newFullPath
+		mapResult[removeFileExtension(file.Name())] = newFullPath
 	}
 	return mapResult, nil
 }
@@ -72,6 +74,12 @@ func isHidden(filePath string) (bool, error) {
 	}
 	return (attributes&syscall.FILE_ATTRIBUTE_HIDDEN != 0) ||
 		(attributes&syscall.FILE_ATTRIBUTE_SYSTEM != 0), nil
+}
+
+// removeFileExtension removes the file extension from a given filename string.
+// It returns the filename without the extension by trimming the suffix returned by filepath.Ext.
+func removeFileExtension(file string) string {
+	return strings.TrimSuffix(file, filepath.Ext(file))
 }
 
 // JsonVideoLibrary returns the videoLibrary map as a JSON-encoded byte slice.
