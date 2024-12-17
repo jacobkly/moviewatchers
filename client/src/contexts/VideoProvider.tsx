@@ -1,14 +1,8 @@
 import React from 'react';
 import {createContext, useContext, useState, useEffect, ReactNode} from 'react';
 import axios, {AxiosResponse} from "axios";
+import {Video, Show, Movie} from '../types/Video';
 import {sha256} from 'js-sha256';
-
-interface Video {
-    id: string;
-    title: string;
-    imagePath: string;
-    videoPath: string;
-}
 
 interface VideoContextType {
     videos: Video[];
@@ -21,7 +15,7 @@ interface VideoProviderProps {
     children: ReactNode;
 }
 
-export const VideoProvider: React.FC<VideoProviderProps> = ({children}) => {
+export const VideoProvider: React.FC<VideoProviderProps> = ({children}: VideoProviderProps) => {
     const [videos, setVideos] = useState<Video[]>([]);
 
     const fetchLibrary = async () => {
@@ -31,12 +25,26 @@ export const VideoProvider: React.FC<VideoProviderProps> = ({children}) => {
             const videoLibrary: Video[] = Object.keys(response.data).map((key: string) => {
                 const videoId: string = sha256(key).slice(0, 10);
 
-                return {
-                    id: videoId,
-                    title: key,
-                    imagePath: '/assets/images/video-placeholder.png',
-                    videoPath: response.data[key],
-                };
+                // Check if the value is an object (show with episodes), else a video (movie).
+                if (typeof response.data[key] === "object") {
+                    return {
+                        id: videoId,
+                        title: key,
+                        imagePath: '/assets/images/video-placeholder.png',
+                        episodes:
+                            Object.entries(response.data[key]).map(([epTitle, epPath]) => ({
+                                title: epTitle,
+                                path: epPath,
+                            })),
+                    } as Show; // explicit cast as Show
+                } else {
+                    return {
+                        id: videoId,
+                        title: key,
+                        imagePath: '/assets/images/video-placeholder.png',
+                        videoPath: response.data[key],
+                    } as Movie; // explicit cast as Movie
+                }
             });
 
             setVideos(videoLibrary);
@@ -57,7 +65,7 @@ export const VideoProvider: React.FC<VideoProviderProps> = ({children}) => {
 }
 
 export const useVideo = (): VideoContextType => {
-    const context = useContext(VideoContext);
+    const context: VideoContextType | undefined = useContext(VideoContext);
     if (!context) {
         throw new Error("useVideo must be used within a VideoProvider");
     }

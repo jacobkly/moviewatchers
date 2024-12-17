@@ -1,12 +1,14 @@
 import React from 'react';
 import {useParams} from 'react-router-dom';
 import {useVideo} from '../../contexts/VideoProvider';
+import {Video, Show, Movie} from '../../types/Video';
 
-interface Video {
-    id: string;
-    title: string;
-    imagePath: string;
-    videoPath: string;
+const isShow = (video: Video): video is Show => {
+    return (video as Show).episodes !== undefined;
+}
+
+const isMovie = (video: Video): video is Movie => {
+    return (video as Movie).videoPath !== undefined;
 }
 
 const VideoPage = () => {
@@ -15,15 +17,40 @@ const VideoPage = () => {
 
     const video: Video | undefined = videos.find(v => v.id === videoId);
     if (!video) {
-        return <p>Video not found...</p>
+        return <p id="video-not-found">Video not found...</p>
     }
 
-    return (
-        <div id="video-page">
-            <h1>{video.title}</h1>
-            <h3>{video.videoPath}</h3>
-        </div>
-    );
+    if (isMovie(video)) {
+        console.log("MOVIE")
+        return (
+            <div id="video-page">
+                <h1>{video.title}</h1>
+                <h3>Movie:</h3>
+                <ul>
+                    <li>
+                        <p>{video.title}</p>
+                    </li>
+                </ul>
+            </div>
+        );
+    } else if (isShow(video)) {
+        console.log("SHOW")
+        return (
+            <div id="video-page">
+                <h1>{video.title}</h1>
+                <h3>Episodes:</h3>
+                <ul>
+                    {video.episodes.map((episode, index) => (
+                        <li key={index}>
+                            <p>{episode.title}</p>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        );
+    }
+
+    return null;
 };
 
 export default VideoPage;
