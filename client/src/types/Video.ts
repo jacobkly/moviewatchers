@@ -1,6 +1,6 @@
 export interface Episode {
     title: string;
-    path: string;
+    videoPath: string;
 }
 
 export interface Show {

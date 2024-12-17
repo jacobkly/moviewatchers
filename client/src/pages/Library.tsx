@@ -20,6 +20,7 @@ const Library = () => {
                             id={video.id}
                             title={video.title}
                             imagePath={video.imagePath}
+                            videoPath=''
                         />
                     ))
                 )}

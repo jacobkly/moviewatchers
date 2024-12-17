@@ -34,7 +34,7 @@ export const VideoProvider: React.FC<VideoProviderProps> = ({children}: VideoPro
                         episodes:
                             Object.entries(response.data[key]).map(([epTitle, epPath]) => ({
                                 title: epTitle,
-                                path: epPath,
+                                videoPath: epPath,
                             })),
                     } as Show; // explicit cast as Show
                 } else {

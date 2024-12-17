@@ -1,14 +1,9 @@
 import React from 'react';
 import {useNavigate, NavigateFunction} from 'react-router-dom';
+import {Video} from '../../types/Video';
 import './video-card.css';
 
-interface VideoCardProps {
-    id: string;
-    title: string;
-    imagePath: string;
-}
-
-const VideoCard: React.FC<VideoCardProps> = ({id, title, imagePath}: VideoCardProps) => {
+const VideoCard: React.FC<Video> = ({id, title, imagePath}: Video) => {
     const navigate: NavigateFunction = useNavigate();
 
     const handleClick = async () => {
