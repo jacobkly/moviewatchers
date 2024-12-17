@@ -10,6 +10,29 @@ interface Video {
     videoPath: string;
 }
 
+const handleApiError = (error: any): void => {
+    if (axios.isAxiosError(error)) {
+        if (error.response) {
+            switch (error.response.status) {
+                case 404:
+                    console.error('No JSON library found (404):', error.response.data);
+                    break;
+                case 500:
+                    console.error('Error fetching JSON library (500):', error.response.data);
+                    break;
+                default:
+                    console.error(`Unexpected error (${error.response.status}):`, error.response.data);
+            }
+        } else if (error.request) {
+            console.error('No response received from server:', error.request);
+        } else {
+            console.error('Error setting up request:', error.message);
+        }
+    } else {
+        console.error('Unexpected error:', error);
+    }
+};
+
 const Library = () => {
     const [library, setLibrary] = useState<Video[] | null>(null);
 
@@ -28,11 +51,7 @@ const Library = () => {
 
             setLibrary(videoLibrary);
         } catch (error) {
-            if (axios.isAxiosError(error)) {
-                console.error("Axios error:", error.message);
-            } else {
-                console.error("Unexpected error:", error);
-            }
+            handleApiError(error);
         }
     };
 
@@ -55,6 +74,7 @@ const Library = () => {
                                 key={video.title}
                                 title={video.title}
                                 imagePath={video.imagePath}
+                                videoPath={video.videoPath}
                             />
                         );
                     })

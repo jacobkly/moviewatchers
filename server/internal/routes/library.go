@@ -20,16 +20,12 @@ func NewRouter() http.Handler {
 	return mux
 }
 
-// enableCors sets the "Access-Control-Allow-Origin" header to "*" to allow  cross-origin requests.
-func enableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-}
-
 // libraryDisplayHandler handles the "/" route, which returns the user's movie library in JSON format.
 // If the library is empty, it returns a 404 status code with an appropriate message.
 // If there is an error fetching the library, it returns a 500 status code and the error message.
 func libraryDisplayHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
+
 	jsonLibrary, err := services.JsonVideoLibrary()
 	if err != nil {
 		if err.Error() == "Empty library" {
@@ -55,15 +51,21 @@ func libraryDisplayHandler(w http.ResponseWriter, r *http.Request) {
 // returns an appropriate status code (such as 400, 404, or 500) along with an error message.
 func playVideoHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
+
 	rBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest) // 400
 		fmt.Fprintln(w, "Error reading body: ", err)
 		return
 	}
 	err = services.PlayVideo(rBody)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError) // 500
 		fmt.Fprintln(w, "Error playing video: ", err)
 	}
+}
+
+// enableCors sets the "Access-Control-Allow-Origin" header to "*" to allow  cross-origin requests.
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }

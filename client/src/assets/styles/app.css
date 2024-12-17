@@ -63,7 +63,7 @@ footer {
 h1 {
     color: #ffffff;
     font-size: 3rem;
-    margin-bottom: 20px;
+    margin: 20px;
 }
 
 p {
@@ -76,7 +76,7 @@ p {
 }
 
 #video-library {
-    width: 80%;
+    width: 70%;
     margin: 1rem auto;
     display: grid;
     justify-items: center;
