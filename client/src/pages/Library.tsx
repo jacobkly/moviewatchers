@@ -1,8 +1,8 @@
 import React from 'react';
-import VideoCard from '../../components/VideoCard/VideoCard';
-import {useVideo} from '../../contexts/VideoProvider';
-import {Video} from '../../types/Video';
-import '../../assets/styles/app.css';
+import VideoCard from '../components/VideoCard/VideoCard';
+import {useVideo} from '../contexts/VideoProvider';
+import {Video} from '../types/Video';
+import '../assets/styles/app.css';
 
 const Library = () => {
     const {videos} = useVideo();

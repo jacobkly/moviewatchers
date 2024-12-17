@@ -1,0 +1,58 @@
+#video-page {
+    margin: 2rem auto;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #3a3f44;
+    color: #ffffff;
+    text-align: center;
+}
+
+#video-page h1 {
+    font-size: 2rem;
+    color: #f1f1f1;
+}
+
+#video-page h3 {
+    font-size: 1.2rem;
+    color: #e1e1e1;
+    margin: 0.75rem;
+}
+
+ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+ul li {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    margin: 5px 0;
+    padding: 10px;
+    transition: transform 0.3s ease;
+}
+
+ul li p {
+    color: #f1f1f1;
+    font-size: 1rem;
+    margin: 0;
+    text-align: left;
+}
+
+ul li:hover {
+    cursor: pointer;
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    #video-page {
+        width: 90%;
+    }
+
+    #video-page h1 {
+        font-size: 1.8rem;
+    }
+
+    #video-page h3 {
+        font-size: 1rem;
+    }
+}

@@ -2,6 +2,7 @@ import React from 'react';
 import {useParams} from 'react-router-dom';
 import {useVideo} from '../../contexts/VideoProvider';
 import {Video, Show, Movie} from '../../types/Video';
+import './video-page.css';
 
 const isShow = (video: Video): video is Show => {
     return (video as Show).episodes !== undefined;

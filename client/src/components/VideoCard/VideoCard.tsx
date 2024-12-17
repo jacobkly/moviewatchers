@@ -1,6 +1,6 @@
 import React from 'react';
 import {useNavigate, NavigateFunction} from 'react-router-dom';
-import '../../assets/styles/app.css';
+import './video-card.css';
 
 interface VideoCardProps {
     id: string;

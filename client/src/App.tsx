@@ -2,9 +2,9 @@ import React from 'react';
 import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
-import Home from './pages/Home/Home';
-import Library from './pages/Library/Library';
-import About from './pages/About/About';
+import Home from './pages/Home';
+import Library from './pages/Library';
+import About from './pages/About';
 import VideoPage from './pages/VideoPage/VideoPage';
 import {VideoProvider} from './contexts/VideoProvider';
 
