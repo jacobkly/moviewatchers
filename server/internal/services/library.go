@@ -10,55 +10,140 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+
+	"github.com/google/uuid"
 )
 
-// videoLibrary holds the video library as a map of file names to their paths.
-var videoLibrary = make(map[string]interface{})
+// Episode represents an episode of a TV show with a title and video path.
+type Episode struct {
+	Title     string `json:"title"`
+	VideoPath string `json:"videoPath"`
+}
 
-// PopulateJSON populates the videoLibrary map by recursively reading a directory and its contents.
-// It excludes hidden files and directories and stores file paths in the videoLibrary map.
-func PopulateJSON(filePath string) error {
+// Show represents a TV show with a unique ID, title, image path, and episodes.
+type Show struct {
+	Id        string    `json:"id"`
+	Title     string    `json:"title"`
+	ImagePath string    `json:"imagePath"`
+	Episodes  []Episode `json:"episodes"`
+	ItemType  string    `json:"type"`
+}
+
+// Movie represents a movie with a unique ID, title, image path, and video path.
+type Movie struct {
+	Id        string `json:"id"`
+	Title     string `json:"title"`
+	ImagePath string `json:"imagePath"`
+	VideoPath string `json:"videoPath"`
+	ItemType  string `json:"type"`
+}
+
+// Video is a generic interface that can represent either a Movie or a Show.
+type Video interface{}
+
+// library is a global slice that stores all videos in the library.
+var library []Video
+
+// PopulateLibrary populates the global video library by reading files and directories
+// from the given filePath. It differentiates between movies and shows.
+func PopulateLibrary(filePath string) error {
 	files, err := os.ReadDir(filePath)
 	if err != nil {
 		return fmt.Errorf("issue reading directory %s: %v", filePath, err)
 	}
 
 	for _, file := range files {
-		newFullPath := filepath.Join(filePath, file.Name())
-		hidden, _ := isHidden(newFullPath)
+		newFilePath := filepath.Join(filePath, file.Name())
+		hidden, _ := isHidden(newFilePath)
 		if hidden {
 			continue
 		}
 
-		fileName := removeFileExtension(file.Name())
 		if file.IsDir() {
-			videoLibrary[fileName], _ = populateMap(newFullPath)
+			addShow(newFilePath, file.Name())
 		} else {
-			videoLibrary[fileName] = newFullPath
+			addMovie(newFilePath, file.Name())
 		}
 	}
 	return nil
 }
 
-// populateMap is a helper function that populates a map with the file paths from a given directory.
-// It excludes hidden files and directories. Note that it is fully compatible with Windows.
-func populateMap(filePath string) (map[string]interface{}, error) {
-	mapResult := make(map[string]interface{})
+// JsonLibrary returns the global library as a JSON-encoded byte slice.
+// It returns an error if the library is empty or if JSON marshalling fails.
+func JsonLibrary() ([]byte, error) {
+	if len(library) == 0 {
+		return nil, fmt.Errorf("empty library")
+	}
+	jsonLibrary, err := json.Marshal(library)
+	if err != nil {
+		return nil, err
+	}
+	return jsonLibrary, nil
+}
 
+// PlayVideo plays a video using VLC from the provided file path.
+// It returns an error if the VLC command fails.
+func PlayVideo(filePath []byte) error {
+	filePathString := string(filePath)
+	cmd := exec.Command("C:\\Program Files\\VideoLAN\\VLC\\vlc.exe", filePathString)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("error playing video: %v", err)
+	}
+	return nil
+}
+
+// addShow adds a show to the global library by reading its episodes from the given file path.
+func addShow(filePath string, showName string) {
+	episodes, err := addEpisodes(filePath)
+	if err != nil {
+		fmt.Printf("error adding episodes: %v", err)
+		return
+	}
+	show := Show{
+		Id:        generateID(),
+		Title:     removeFileExtension(showName),
+		ImagePath: "/assets/images/video-placeholder.png", // hard coded for React app
+		Episodes:  episodes,
+		ItemType:  "show",
+	}
+	library = append(library, show)
+}
+
+// addMovie adds a movie to the global library from the given file path and name.
+func addMovie(filePath string, movieName string) {
+	movie := Movie{
+		Id:        generateID(),
+		Title:     removeFileExtension(movieName),
+		ImagePath: "/assets/images/video-placeholder.png", // hard coded for React app
+		VideoPath: filePath,
+		ItemType:  "movie",
+	}
+	library = append(library, movie)
+}
+
+// addEpisodes reads and creates a list of episodes from the given file path.
+// It returns the list of episodes or an error if reading the directory fails.
+func addEpisodes(filePath string) ([]Episode, error) {
 	files, err := os.ReadDir(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("issue reading directory %s: %v", filePath, err)
 	}
 
+	var episodes []Episode
 	for _, file := range files {
-		newFullPath := filepath.Join(filePath, file.Name())
-		hidden, _ := isHidden(newFullPath)
+		newFilePath := filepath.Join(filePath, file.Name())
+		hidden, _ := isHidden(newFilePath)
 		if hidden {
 			continue
 		}
-		mapResult[removeFileExtension(file.Name())] = newFullPath
+
+		episode := Episode{
+			Title:     removeFileExtension(file.Name()),
+			VideoPath: newFilePath,
+		}
+		episodes = append(episodes, episode)
 	}
-	return mapResult, nil
+	return episodes, nil
 }
 
 // isHidden checks if a given file or directory is hidden on the Windows filesystem.
@@ -77,33 +162,13 @@ func isHidden(filePath string) (bool, error) {
 }
 
 // removeFileExtension removes the file extension from a given filename string.
-// It returns the filename without the extension by trimming the suffix returned by filepath.Ext.
+// It returns the filename without the extension.
 func removeFileExtension(file string) string {
 	return strings.TrimSuffix(file, filepath.Ext(file))
 }
 
-// JsonVideoLibrary returns the videoLibrary map as a JSON-encoded byte slice.
-// It returns an error if the library is empty or if marshalling fails.
-func JsonVideoLibrary() ([]byte, error) {
-	if len(videoLibrary) == 0 {
-		return nil, fmt.Errorf("empty library")
-	}
-
-	jsonLibrary, err := json.Marshal(videoLibrary)
-	if err != nil {
-		return nil, err
-	}
-	return jsonLibrary, nil
-}
-
-// PlayVideo attempts to play a video using VLC from the provided file path.
-// It returns an error if there is an issue running the VLC command.
-func PlayVideo(filePath []byte) error {
-	filePathString := string(filePath)
-
-	cmd := exec.Command("C:\\Program Files\\VideoLAN\\VLC\\vlc.exe", filePathString)
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("error playing video: %v", err)
-	}
-	return nil
+// generateID generates a unique ID for a video item by using the UUID package.
+// It returns the first 10 characters of the UUID.
+func generateID() string {
+	return uuid.New().String()[:10]
 }

@@ -14,7 +14,7 @@ import (
 // It populates data used by the client, sets up the HTTP router, and starts the server to listen
 // on localhost at port 8080. Note that it may handle hidden files differently on Mac/Linux.
 func main() {
-	err := services.PopulateJSON("F:\\")
+	err := services.PopulateLibrary("F:\\")
 	if err != nil {
 		log.Fatal("Issue when populating JSON data: ", err)
 	}

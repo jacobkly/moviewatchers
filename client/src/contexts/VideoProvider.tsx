@@ -1,8 +1,7 @@
 import React from 'react';
 import {createContext, useContext, useState, useEffect, ReactNode} from 'react';
 import axios, {AxiosResponse} from "axios";
-import {Video, Show, Movie} from '../types/Video';
-import {sha256} from 'js-sha256';
+import {Video} from '../types/Video';
 
 interface VideoContextType {
     videos: Video[];
@@ -21,33 +20,7 @@ export const VideoProvider: React.FC<VideoProviderProps> = ({children}: VideoPro
     const fetchLibrary = async () => {
         try {
             const response: AxiosResponse = await axios.get("http://localhost:8080/");
-
-            const videoLibrary: Video[] = Object.keys(response.data).map((key: string) => {
-                const videoId: string = sha256(key).slice(0, 10);
-
-                // Check if the value is an object (show with episodes), else a video (movie).
-                if (typeof response.data[key] === "object") {
-                    return {
-                        id: videoId,
-                        title: key,
-                        imagePath: '/assets/images/video-placeholder.png',
-                        episodes:
-                            Object.entries(response.data[key]).map(([epTitle, epPath]) => ({
-                                title: epTitle,
-                                videoPath: epPath,
-                            })),
-                    } as Show; // explicit cast as Show
-                } else {
-                    return {
-                        id: videoId,
-                        title: key,
-                        imagePath: '/assets/images/video-placeholder.png',
-                        videoPath: response.data[key],
-                    } as Movie; // explicit cast as Movie
-                }
-            });
-
-            setVideos(videoLibrary);
+            setVideos(response.data);
         } catch (error) {
             handleApiError(error);
         }

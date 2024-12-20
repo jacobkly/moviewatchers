@@ -26,7 +26,7 @@ func NewRouter() http.Handler {
 func libraryDisplayHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 
-	jsonLibrary, err := services.JsonVideoLibrary()
+	jsonLibrary, err := services.JsonLibrary()
 	if err != nil {
 		if err.Error() == "Empty library" {
 			w.WriteHeader(http.StatusNotFound) // 404
