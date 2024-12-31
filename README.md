@@ -2,8 +2,9 @@
 
 ## About
 
-The incentive for this project is to learn **Go** and **React + TypeScript** by solving the problem
-of watching movies and shows on websites with low graphic and audio quality. Instead, *
-*moviewatchers** accesses user's specified memory storage, with approval, populating a web page with
-all movies and shows. This gives easy access and playback of all user favorite videos locally on
-their specified storage.
+**moviewatchers** is a proof-of-concept app built to practice **Go** and **React + TypeScript**. It
+provides a simple interface for organizing and playing videos stored locally on a user’s device.
+
+With user approval, the app scans specified local storage to create a web page displaying available
+videos for easy access and playback. This project is purely educational, focusing on improving
+coding skills and providing a better way to enjoy locally stored content.
