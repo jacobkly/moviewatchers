@@ -3,20 +3,19 @@ package routes
 
 import (
 	"fmt"
-	"io"
-	"net/http"
-
 	"github.com/jacobkly/moviewatchers/server/internal/services"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
-// NewRouter creates and returns a new HTTP router with two routes:
-// - "/" to display the movie library in JSON format
-// - "/play" to play a video
+// NewRouter creates and returns a new HTTP router with two routes.
 func NewRouter() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", libraryDisplayHandler)
-	mux.HandleFunc("/play", playVideoHandler)
+	mux.HandleFunc("/video", videoFileHandler)
 	return mux
 }
 
@@ -45,27 +44,44 @@ func libraryDisplayHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// playVideoHandler handles the "/play" route, which attempts to play a video file specified in the
-// request body. It reads the video file path from the request body and attempts to play it using
-// the PlayVideo service. If an error occurs while reading the body or playing the video, it
-// returns an appropriate status code (such as 400, 404, or 500) along with an error message.
-func playVideoHandler(w http.ResponseWriter, r *http.Request) {
+// videoFileHandler handles the "/video" route, which serves video files based on the "path" query parameter.
+// It checks if the file exists and serves it with the appropriate content type (MP4 or MKV).
+// If the content type is unsupported or the file doesn't exist, it returns an appropriate error.
+func videoFileHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 
-	rBody, err := io.ReadAll(r.Body)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest) // 400
-		fmt.Fprintln(w, "Error reading body: ", err)
+	videoPath := r.URL.Query().Get("path")
+	filePath := filepath.Clean(videoPath)
+	if _, err := os.Stat(filePath); err != nil {
+		http.Error(w, "File not found", http.StatusNotFound)
 		return
 	}
-	err = services.PlayVideo(rBody)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError) // 500
-		fmt.Fprintln(w, "Error playing video: ", err)
+
+	contentType := getContentType(filePath)
+	if contentType == "video/mp4" || contentType == "video/x-matroska" {
+		w.Header().Set("Content-Type", contentType)
+		http.ServeFile(w, r, filePath)
+	} else {
+		http.Error(w, "Unsupported media type", http.StatusUnsupportedMediaType)
 	}
 }
 
-// enableCors sets the "Access-Control-Allow-Origin" header to "*" to allow  cross-origin requests.
+// getContentType determines the content type based on the file extension.
+// It supports MP4 and MKV file types. If the file has an unsupported extension,
+// it returns "application/octet-stream".
+func getContentType(filePath string) string {
+	var contentType string
+	if strings.HasSuffix(filePath, ".mp4") {
+		contentType = "video/mp4"
+	} else if strings.HasSuffix(filePath, ".mkv") {
+		contentType = "video/x-matroska"
+	} else {
+		contentType = "application/octet-stream"
+	}
+	return contentType
+}
+
+// enableCors sets the "Access-Control-Allow-Origin" header to "*" to allow cross-origin requests.
 func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }

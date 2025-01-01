@@ -1,12 +1,11 @@
 // Package services provides functions for managing a video library, including populating the
-// library, checking if files are hidden, converting the library to JSON, and playing videos.
+// library, checking if files are hidden, and converting the library to JSON.
 package services
 
 import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"syscall"
@@ -79,17 +78,6 @@ func JsonLibrary() ([]byte, error) {
 		return nil, err
 	}
 	return jsonLibrary, nil
-}
-
-// PlayVideo plays a video using VLC from the provided file path.
-// It returns an error if the VLC command fails.
-func PlayVideo(filePath []byte) error {
-	filePathString := string(filePath)
-	cmd := exec.Command("C:\\Program Files\\VideoLAN\\VLC\\vlc.exe", filePathString)
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("error playing video: %v", err)
-	}
-	return nil
 }
 
 // addShow adds a show to the global library by reading its episodes from the given file path.
