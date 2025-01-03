@@ -3,11 +3,12 @@ package routes
 
 import (
 	"fmt"
-	"github.com/jacobkly/moviewatchers/server/internal/services"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/jacobkly/moviewatchers/server/internal/services"
 )
 
 // NewRouter creates and returns a new HTTP router with two routes.
@@ -16,6 +17,7 @@ func NewRouter() http.Handler {
 
 	mux.HandleFunc("/", libraryDisplayHandler)
 	mux.HandleFunc("/video", videoFileHandler)
+	mux.HandleFunc("/subtitle", subtitleHandler)
 	return mux
 }
 
@@ -79,6 +81,13 @@ func getContentType(filePath string) string {
 		contentType = "application/octet-stream"
 	}
 	return contentType
+}
+
+func subtitleHandler(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+
+	w.Header().Set("Content-Type", "text/srt")
+	http.ServeFile(w, r, "F:/[Trix] Kids on the Slope S01E01 (English Subtitles).srt")
 }
 
 // enableCors sets the "Access-Control-Allow-Origin" header to "*" to allow cross-origin requests.

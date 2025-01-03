@@ -43,6 +43,13 @@ ul li:hover {
     transform: scale(1.05);
 }
 
+.video-player {
+    max-width: 1000px;
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+}
+
 @media (max-width: 768px) {
     #video-page {
         width: 90%;
