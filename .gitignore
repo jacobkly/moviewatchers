@@ -28,8 +28,3 @@ go.work.sum
 /build/
 /dist/
 /out/
-
-# Node.js-style lockfiles (if applicable)
-package-lock.json
-yarn.lock
-pnpm-lock.yaml

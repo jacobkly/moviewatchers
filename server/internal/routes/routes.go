@@ -50,6 +50,8 @@ func libraryDisplayHandler(w http.ResponseWriter, r *http.Request) {
 // It checks if the file exists and serves it with the appropriate content type (MP4 or MKV).
 // If the content type is unsupported or the file doesn't exist, it returns an appropriate error.
 func videoFileHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("[START:DEBUG] - videoFileHandler")
+
 	enableCors(&w)
 
 	videoPath := r.URL.Query().Get("path")
@@ -64,33 +66,83 @@ func videoFileHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", contentType)
 		http.ServeFile(w, r, filePath)
 	} else {
-		http.Error(w, "Unsupported media type", http.StatusUnsupportedMediaType)
+		http.Error(w, "Unsupported video type", http.StatusUnsupportedMediaType)
 	}
+
+	fmt.Println("[END:DEBUG] - videoFileHandler")
 }
 
-// getContentType determines the content type based on the file extension.
-// It supports MP4 and MKV file types. If the file has an unsupported extension,
-// it returns "application/octet-stream".
-func getContentType(filePath string) string {
-	var contentType string
-	if strings.HasSuffix(filePath, ".mp4") {
-		contentType = "video/mp4"
-	} else if strings.HasSuffix(filePath, ".mkv") {
-		contentType = "video/x-matroska"
-	} else {
-		contentType = "application/octet-stream"
-	}
-	return contentType
-}
-
+// potentially switch to writing data (io.Copy) to res instead of ServeFile
 func subtitleHandler(w http.ResponseWriter, r *http.Request) {
+	// debugging
+	fmt.Println("[DEBUG] - subtitleHandler function started")
+	fmt.Println("Request Method:", r.Method) // Should log 'GET'
+	fmt.Println("Subtitle Path:", r.URL.Query().Get("path"))
+
 	enableCors(&w)
 
-	w.Header().Set("Content-Type", "text/srt")
-	http.ServeFile(w, r, "F:/[Trix] Kids on the Slope S01E01 (English Subtitles).srt")
+	subtitlePath := r.URL.Query().Get("path")
+	if subtitlePath == "" {
+		fmt.Println("Missing subtitle path")
+		http.Error(w, "Missing subtitle path", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println("Subtitle path from req:", subtitlePath) // debugging
+
+	filePath, err := services.ProcessSubtitlePath(subtitlePath)
+	if err != nil {
+		fmt.Println("Error processing subtitle path:", err)
+		http.Error(w, "Unexpected subtitle path error", http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Println("Resolved file path:", filePath) // debugging
+
+	if _, err := os.Stat(filePath); err != nil {
+		http.Error(w, "File not found", http.StatusNotFound)
+		return
+	}
+
+	contentType := getContentType(filePath)
+	if contentType == "text/srt" || contentType == "text/vtt" {
+		w.Header().Set("Content-Type", contentType)
+		fmt.Println("[DEBUG] - Sending subtitle file")
+		http.ServeFile(w, r, filePath)
+	} else {
+		fmt.Println("Unsupported subtitle type:", contentType)
+		http.Error(w, "Unsupported subtitle type", http.StatusUnsupportedMediaType)
+	}
+	// w.Header().Set("Content-Type", "text/srt")
+	// http.ServeFile(w, r, "F:\\subtitles\\[Trix] Kids on the Slope S01E01 (BD AV1 1080p Opus).srt")
 }
 
 // enableCors sets the "Access-Control-Allow-Origin" header to "*" to allow cross-origin requests.
 func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Methods", "GET")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Content-Type")
+}
+
+// getContentType determines the content type based on the file extension.
+// If the file has an unsupported extension, it returns "application/octet-stream".
+func getContentType(filePath string) string {
+	var contentType string
+
+	if strings.HasSuffix(filePath, ".mp4") {
+		contentType = "video/mp4"
+	} else if strings.HasSuffix(filePath, ".mkv") {
+		contentType = "video/x-matroska"
+	} else if strings.HasSuffix(filePath, ".mov") {
+		contentType = "video/quicktime"
+	} else if strings.HasSuffix(filePath, ".webm") {
+		contentType = "video/webm"
+	} else if strings.HasSuffix(filePath, ".srt") {
+		contentType = "text/srt"
+	} else if strings.HasSuffix(filePath, ".vtt") {
+		contentType = "text/vtt"
+	} else {
+		contentType = "application/octet-stream"
+	}
+	return contentType
 }

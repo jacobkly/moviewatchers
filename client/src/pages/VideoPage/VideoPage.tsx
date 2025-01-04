@@ -25,19 +25,34 @@ const VideoPage = () => {
 
     const handleClick = async (videoPath: string) => {
         try {
+            console.log(videoPath) // debugging
             const videoResponse: AxiosResponse = await axios.get(
-                `http://localhost:8080/video?path=${encodeURIComponent(videoPath)}`, {
-                responseType: 'blob' // response as a blob (not string or json) to handle video
-            });
+                `http://localhost:8080/video?path=${encodeURIComponent(videoPath)}`,
+                { responseType: 'blob' }
+            ); // response as a blob (not string or json) to handle video
+
+            console.log("Subtitle URL:", `http://localhost:8080/subtitle?path=${encodeURIComponent(videoPath)}`); // debugging
 
             const subtitleResponse: AxiosResponse = await axios.get(
-                "http://localhost:8080/subtitle", {
-                responseType: 'text'
-            });
+                `http://localhost:8080/subtitle?path=${encodeURIComponent(videoPath)}`,
+                // "http://localhost:8080/subtitle",
+                { responseType: 'text' }
+            );
+            // console.log(subtitleResponse.data) // debugging
 
             setVideoSource(URL.createObjectURL(videoResponse.data));
+            console.log("Video Source: ", videoSource) // debugging
             setVideoType(videoResponse.headers['content-type']);
-            setSubtitleSource(URL.createObjectURL(new Blob([subtitleResponse.data], { type: 'text/srt' })));
+            console.log("Video Type: ", videoType) // debugging
+
+            const subtitleType: string = subtitleResponse.headers['content-type'];
+            // setSubtitleSource(URL.createObjectURL(new Blob(
+            //     [subtitleResponse.data],
+            //     { type: subtitleType }
+            // )));
+            setSubtitleSource(subtitleResponse.data);
+            console.log("Subtitle Source: ", subtitleSource) // debugging
+            console.log("Subtitle Type: ", subtitleType) // debugging
         } catch (error: any) {
             handleApiError(error);
         }
@@ -59,14 +74,22 @@ const VideoPage = () => {
                                 kind: "captions",
                                 srcLang: "en",
                                 label: "English",
-                                src: subtitleSource,
+                                src: subtitleSource || '',
                                 default: true,
                             }]
                             : [],
                     }}
                     options={{
                         autoplay: false,
-                        controls: ['play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'fullscreen'],
+                        controls: [
+                            'play',
+                            'progress',
+                            'current-time',
+                            'mute',
+                            'volume',
+                            'captions',
+                            'fullscreen'
+                        ],
                         captions: {
                             active: true,
                             update: true,

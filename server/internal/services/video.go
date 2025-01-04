@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"syscall"
 
 	"github.com/google/uuid"
@@ -53,8 +52,8 @@ func PopulateLibrary(filePath string) error {
 
 	for _, file := range files {
 		newFilePath := filepath.Join(filePath, file.Name())
-		hidden, _ := isHidden(newFilePath)
-		if hidden {
+		isSkippable, _ := isSkippable(newFilePath)
+		if isSkippable {
 			continue
 		}
 
@@ -89,7 +88,7 @@ func addShow(filePath string, showName string) {
 	}
 	show := Show{
 		Id:        generateID(),
-		Title:     removeFileExtension(showName),
+		Title:     RemoveFileExtension(showName),
 		ImagePath: "/assets/images/video-placeholder.png", // hard coded for React app
 		Episodes:  episodes,
 		ItemType:  "show",
@@ -101,7 +100,7 @@ func addShow(filePath string, showName string) {
 func addMovie(filePath string, movieName string) {
 	movie := Movie{
 		Id:        generateID(),
-		Title:     removeFileExtension(movieName),
+		Title:     RemoveFileExtension(movieName),
 		ImagePath: "/assets/images/video-placeholder.png", // hard coded for React app
 		VideoPath: filePath,
 		ItemType:  "movie",
@@ -120,13 +119,13 @@ func addEpisodes(filePath string) ([]Episode, error) {
 	var episodes []Episode
 	for _, file := range files {
 		newFilePath := filepath.Join(filePath, file.Name())
-		hidden, _ := isHidden(newFilePath)
-		if hidden {
+		isSkippable, _ := isSkippable(newFilePath)
+		if isSkippable {
 			continue
 		}
 
 		episode := Episode{
-			Title:     removeFileExtension(file.Name()),
+			Title:     RemoveFileExtension(file.Name()),
 			VideoPath: newFilePath,
 		}
 		episodes = append(episodes, episode)
@@ -134,9 +133,35 @@ func addEpisodes(filePath string) ([]Episode, error) {
 	return episodes, nil
 }
 
-// isHidden checks if a given file or directory is hidden on the Windows filesystem.
-// It returns true if the file is hidden or a system file, and false otherwise.
-func isHidden(filePath string) (bool, error) {
+// isSkippable checks if a file or directory should be skipped.
+func isSkippable(filePath string) (bool, error) {
+	// Check for directories that should be skipped
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return true, nil
+	}
+	if fileInfo.IsDir() {
+		files, err := os.ReadDir(filePath)
+		if err != nil {
+			return true, err
+		}
+		for _, file := range files {
+			if file.Name() == "subtitles" || file.Name() == "raw" {
+				return true, nil
+			}
+		}
+	}
+
+	// Check file extension for non-compatible types
+	fileExt := filepath.Ext(filePath)
+	switch fileExt {
+	case ".mp4", ".mov", ".avi", ".mkv", ".webm":
+		// if true, continue the function
+	default:
+		return true, nil
+	}
+
+	// Check for hidden and system file attributes (Windows-specific)
 	pointer, err := syscall.UTF16PtrFromString(filePath)
 	if err != nil {
 		return false, err
@@ -145,14 +170,12 @@ func isHidden(filePath string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return (attributes&syscall.FILE_ATTRIBUTE_HIDDEN != 0) ||
-		(attributes&syscall.FILE_ATTRIBUTE_SYSTEM != 0), nil
-}
+	if attributes&syscall.FILE_ATTRIBUTE_HIDDEN != 0 ||
+		attributes&syscall.FILE_ATTRIBUTE_SYSTEM != 0 {
+		return true, nil
+	}
 
-// removeFileExtension removes the file extension from a given filename string.
-// It returns the filename without the extension.
-func removeFileExtension(file string) string {
-	return strings.TrimSuffix(file, filepath.Ext(file))
+	return false, nil
 }
 
 // generateID generates a unique ID for a video item by using the UUID package.
